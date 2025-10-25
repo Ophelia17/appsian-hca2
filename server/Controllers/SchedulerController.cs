@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Server.Models.Dtos;
 using Server.Services.Scheduling;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace Server.Controllers;
 
@@ -20,6 +21,32 @@ public class SchedulerController : ControllerBase
     }
 
     [HttpPost("order")]
+    [SwaggerOperation(
+        Summary = "Get recommended task order",
+        Description = @"Returns a dependency-aware recommended order for tasks using topological sorting with configurable tie-breaking strategies.
+
+## Example cURL Request:
+```bash
+curl -X POST 'https://your-api.com/api/scheduler/order' \
+  -H 'Authorization: Bearer YOUR_JWT_TOKEN' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    ""tasks"": [
+      { ""title"": ""Design API"", ""estimatedHours"": 5, ""dueDate"": ""2025-10-25"", ""dependencies"": [] },
+      { ""title"": ""Implement Backend"", ""estimatedHours"": 12, ""dueDate"": ""2025-10-28"", ""dependencies"": [""Design API""] },
+      { ""title"": ""Build Frontend"", ""estimatedHours"": 10, ""dueDate"": ""2025-10-30"", ""dependencies"": [""Design API""] },
+      { ""title"": ""End-to-End Test"", ""estimatedHours"": 8, ""dueDate"": ""2025-10-31"", ""dependencies"": [""Implement Backend"", ""Build Frontend""] }
+    ],
+    ""strategy"": ""DepsDueSjf""
+  }'
+```",
+        OperationId = "GetRecommendedOrder"
+    )]
+    [SwaggerResponse(200, "Successfully generated recommended order", typeof(SchedulerOrderResponse))]
+    [SwaggerResponse(400, "Invalid request - duplicate titles, unknown dependencies, or self-dependencies")]
+    [SwaggerResponse(422, "Scheduling failed - circular dependencies detected")]
+    [SwaggerResponse(401, "Unauthorized - valid JWT token required")]
+    [SwaggerResponse(500, "Internal server error")]
     public async Task<ActionResult<SchedulerOrderResponse>> GetRecommendedOrder([FromBody] SchedulerOrderRequest request)
     {
         if (!ModelState.IsValid)
