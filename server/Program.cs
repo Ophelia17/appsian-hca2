@@ -22,7 +22,7 @@ public class Program
         {
             options.AddPolicy("AllowClient", policy =>
             {
-                policy.WithOrigins("http://localhost:5173")
+                policy.WithOrigins("http://localhost:5173", "https://*.vercel.app")
                       .AllowAnyHeader()
                       .AllowAnyMethod()
                       .AllowCredentials();
@@ -82,6 +82,9 @@ public class Program
         app.UseAuthorization();
 
         app.MapControllers();
+
+        // Health check endpoint
+        app.MapGet("/healthz", () => "OK");
 
         // Ensure database is created
         using (var scope = app.Services.CreateScope())
