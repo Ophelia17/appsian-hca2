@@ -4,7 +4,7 @@ namespace Server.Services.Scheduling;
 
 public class SchedulerOrderService : ISchedulerOrderService
 {
-    public async Task<SchedulerOrderResponse> GetRecommendedOrderAsync(SchedulerOrderRequest request)
+    public Task<SchedulerOrderResponse> GetRecommendedOrderAsync(SchedulerOrderRequest request)
     {
         // Validate input
         ValidateTasks(request.Tasks);
@@ -18,11 +18,11 @@ public class SchedulerOrderService : ISchedulerOrderService
         // Perform topological sort with tie-breaking
         var orderedTasks = PerformTopologicalSort(graph, request.Tasks, request.Strategy ?? OrderStrategy.DepsDueSjf);
         
-        return new SchedulerOrderResponse
+        return Task.FromResult(new SchedulerOrderResponse
         {
             RecommendedOrder = orderedTasks,
             StrategyUsed = (request.Strategy ?? OrderStrategy.DepsDueSjf).ToString()
-        };
+        });
     }
     
     private void ValidateTasks(List<SchedulerTaskDto> tasks)
