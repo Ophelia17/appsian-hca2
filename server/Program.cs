@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Server.Data;
 using Server.Services;
+using Server.Services.Scheduling;
 
 namespace Server;
 
@@ -21,7 +22,7 @@ public class Program
         {
             options.AddPolicy("AllowClient", policy =>
             {
-                policy.WithOrigins("http://localhost:5173")
+                policy.WithOrigins("http://localhost:5173", "https://*.vercel.app")
                       .AllowAnyHeader()
                       .AllowAnyMethod()
                       .AllowCredentials();
@@ -35,6 +36,7 @@ public class Program
         // Register services
         builder.Services.AddScoped<ITokenService, TokenService>();
         builder.Services.AddScoped<AuthService>();
+        builder.Services.AddScoped<ISchedulerOrderService, SchedulerOrderService>();
 
         // Configure JWT Authentication
         var jwtSecret = builder.Configuration["Jwt:Secret"] ?? 
@@ -81,6 +83,9 @@ public class Program
 
         app.MapControllers();
 
+        // Health check endpoint
+        app.MapGet("/healthz", () => "OK");
+
         // Ensure database is created
         using (var scope = app.Services.CreateScope())
         {
@@ -88,6 +93,7 @@ public class Program
             context.Database.EnsureCreated();
         }
 
-        app.Run();
+        var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+        app.Run($"http://0.0.0.0:{port}");
     }
 }
