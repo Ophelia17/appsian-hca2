@@ -22,10 +22,14 @@ public class Program
         {
             options.AddPolicy("AllowClient", policy =>
             {
-                policy.WithOrigins("http://localhost:5173", "https://*.vercel.app")
-                      .AllowAnyHeader()
-                      .AllowAnyMethod()
-                      .AllowCredentials();
+                policy.WithOrigins(
+                    "http://localhost:5173",
+                    "https://appsian-hca2.vercel.app",
+                    "https://appsian-hca2-*.vercel.app"
+                )
+                .AllowAnyHeader()
+                .AllowAnyMethod()
+                .AllowCredentials();
             });
         });
 
