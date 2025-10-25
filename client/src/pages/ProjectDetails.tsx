@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Container, Card, Button, Form, Toast, ToastContainer, ListGroup, Badge, InputGroup } from 'react-bootstrap';
+import { Container, Card, Button, Form, Toast, ToastContainer, ListGroup, Badge } from 'react-bootstrap';
 import { projectsApi, Task } from '../api/projects';
 
 export const ProjectDetails = () => {
