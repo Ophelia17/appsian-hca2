@@ -73,9 +73,14 @@ export const Dashboard = () => {
             <h1 className="display-5 fw-bold mb-2 text-primary">My Projects</h1>
             <p className="lead text-muted">Manage your projects and tasks</p>
           </div>
-          <Button variant="outline-danger" onClick={handleLogout} className="px-4">
-            Logout
-          </Button>
+          <div className="d-flex gap-2">
+            <Button variant="outline-primary" onClick={() => navigate('/scheduler')} className="px-4">
+              Smart Scheduler
+            </Button>
+            <Button variant="outline-danger" onClick={handleLogout} className="px-4">
+              Logout
+            </Button>
+          </div>
         </div>
 
         <Button 
