@@ -32,6 +32,10 @@ export const Scheduler = () => {
     const newTasks = [...tasks];
     if (field === 'dependencies') {
       newTasks[index][field] = value.split(',').map((dep: string) => dep.trim()).filter((dep: string) => dep);
+    } else if (field === 'estimatedHours') {
+      newTasks[index][field] = value ? parseFloat(value) : undefined;
+    } else if (field === 'dueDate') {
+      newTasks[index][field] = value || undefined;
     } else {
       newTasks[index][field] = value;
     }
