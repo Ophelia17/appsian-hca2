@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Server.Data;
 using Server.Services;
+using Server.Services.Scheduling;
 
 namespace Server;
 
@@ -35,6 +36,7 @@ public class Program
         // Register services
         builder.Services.AddScoped<ITokenService, TokenService>();
         builder.Services.AddScoped<AuthService>();
+        builder.Services.AddScoped<ISchedulerOrderService, SchedulerOrderService>();
 
         // Configure JWT Authentication
         var jwtSecret = builder.Configuration["Jwt:Secret"] ?? 
