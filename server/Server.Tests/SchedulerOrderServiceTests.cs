@@ -146,7 +146,8 @@ public class SchedulerOrderServiceTests
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => _schedulerService.GetRecommendedOrderAsync(request));
-        Assert.Contains("Circular dependency detected", exception.Message);
+        Assert.Contains("Cannot create a valid schedule", exception.Message);
+        Assert.Contains("deadlock", exception.Message);
     }
 
     [Fact]
