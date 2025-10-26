@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Container, Card, Button, Form, Toast, ToastContainer, ListGroup, Badge } from 'react-bootstrap';
+import { Container, Card, Button, Form, Toast, ToastContainer, ListGroup, Badge, Nav } from 'react-bootstrap';
 import { projectsApi, Task } from '../api/projects';
 
 export const ProjectDetails = () => {
@@ -17,6 +17,7 @@ export const ProjectDetails = () => {
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [editTitle, setEditTitle] = useState('');
   const [editDueDate, setEditDueDate] = useState('');
+  const [filter, setFilter] = useState<'all' | 'active' | 'completed'>('all');
 
   useEffect(() => {
     if (id) {
@@ -183,16 +184,58 @@ export const ProjectDetails = () => {
 
         <Card className="shadow-sm border-0">
           <Card.Body className="p-0">
-            <div className="p-4 border-bottom bg-light">
-              <Card.Title className="mb-0">Tasks ({tasks.length})</Card.Title>
+            <div className="border-bottom bg-light">
+              <Nav variant="tabs" className="px-4 pt-3 border-bottom-0">
+                <Nav.Item>
+                  <Nav.Link
+                    active={filter === 'all'}
+                    onClick={() => setFilter('all')}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    All Tasks ({tasks.length})
+                  </Nav.Link>
+                </Nav.Item>
+                <Nav.Item>
+                  <Nav.Link
+                    active={filter === 'active'}
+                    onClick={() => setFilter('active')}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    Active ({tasks.filter(t => !t.isCompleted).length})
+                  </Nav.Link>
+                </Nav.Item>
+                <Nav.Item>
+                  <Nav.Link
+                    active={filter === 'completed'}
+                    onClick={() => setFilter('completed')}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    Completed ({tasks.filter(t => t.isCompleted).length})
+                  </Nav.Link>
+                </Nav.Item>
+              </Nav>
             </div>
-            {tasks.length === 0 ? (
-              <div className="p-5 text-center">
-                <p className="text-muted mb-0">No tasks yet. Add your first task above.</p>
-              </div>
-            ) : (
-                            <ListGroup variant="flush">
-                {tasks.map((task) => (
+
+            {(() => {
+              const filteredTasks = filter === 'all'
+                ? tasks
+                : filter === 'active'
+                  ? tasks.filter(t => !t.isCompleted)
+                  : tasks.filter(t => t.isCompleted);
+
+              return filteredTasks.length === 0 ? (
+                <div className="p-5 text-center">
+                  <p className="text-muted mb-0">
+                    {filter === 'active'
+                      ? 'No active tasks'
+                      : filter === 'completed'
+                        ? 'No completed tasks yet'
+                        : 'No tasks yet. Add your first task above.'}
+                  </p>
+                </div>
+              ) : (
+                <ListGroup variant="flush">
+                  {filteredTasks.map((task) => (
                   <ListGroup.Item 
                     key={task.id} 
                     className="d-flex justify-content-between align-items-center py-3 px-4"
@@ -243,9 +286,10 @@ export const ProjectDetails = () => {
                       </Button>
                     </div>
                   </ListGroup.Item>
-                ))}
-              </ListGroup>
-            )}
+                  ))}
+                </ListGroup>
+              );
+            })()}
           </Card.Body>
         </Card>
 
