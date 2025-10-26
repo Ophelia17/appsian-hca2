@@ -2,6 +2,12 @@
 
 A full-stack application for managing projects and tasks with JWT authentication.
 
+## 🚀 Live Deployment
+
+The application is deployed and accessible at: **[https://appsian-hca2.vercel.app/](https://appsian-hca2.vercel.app/)**
+
+> **Note:** The backend is running on a free tier of Render, which goes to sleep after periods of inactivity. If the application seems slow or unresponsive, please click this link to wake up the backend: [https://smart-scheduler-api-rbno.onrender.com](https://smart-scheduler-api-rbno.onrender.com)
+
 ## Tech Stack
 
 ### Server
