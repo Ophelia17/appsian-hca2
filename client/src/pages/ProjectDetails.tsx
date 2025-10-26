@@ -14,6 +14,9 @@ export const ProjectDetails = () => {
   const [loading, setLoading] = useState(false);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [editTitle, setEditTitle] = useState('');
+  const [editDueDate, setEditDueDate] = useState('');
 
   useEffect(() => {
     if (id) {
@@ -66,6 +69,43 @@ export const ProjectDetails = () => {
     } catch (error: any) {
       setToastMessage(error.response?.data?.detail || 'Failed to update task');
       setShowToast(true);
+    }
+  };
+
+  const handleEditTask = (task: Task) => {
+    setEditingTask(task);
+    setEditTitle(task.title);
+    setEditDueDate(task.dueDate ? new Date(task.dueDate).toISOString().slice(0, 16) : '');
+  };
+
+  const handleCancelEdit = () => {
+    setEditingTask(null);
+    setEditTitle('');
+    setEditDueDate('');
+  };
+
+  const handleUpdateTask = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingTask) return;
+
+    setLoading(true);
+    try {
+      await projectsApi.updateTask(editingTask.id, {
+        title: editTitle,
+        dueDate: editDueDate || undefined,
+        isCompleted: editingTask.isCompleted,
+      });
+      setEditingTask(null);
+      setEditTitle('');
+      setEditDueDate('');
+      setToastMessage('Task updated successfully');
+      setShowToast(true);
+      loadProject();
+    } catch (error: any) {
+      setToastMessage(error.response?.data?.detail || 'Failed to update task');
+      setShowToast(true);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -186,19 +226,66 @@ export const ProjectDetails = () => {
                         )}
                       </div>
                     </div>
-                    <Button
-                      variant="outline-danger"
-                      size="sm"
-                      onClick={() => handleDeleteTask(task.id)}
-                    >
-                      Delete
-                    </Button>
+                    <div className="d-flex gap-2">
+                      <Button
+                        variant="outline-primary"
+                        size="sm"
+                        onClick={() => handleEditTask(task)}
+                      >
+                        Edit
+                      </Button>
+                      <Button
+                        variant="outline-danger"
+                        size="sm"
+                        onClick={() => handleDeleteTask(task.id)}
+                      >
+                        Delete
+                      </Button>
+                    </div>
                   </ListGroup.Item>
                 ))}
               </ListGroup>
             )}
           </Card.Body>
         </Card>
+
+        {editingTask && (
+          <Card className="mb-4 shadow-sm border-primary">
+            <Card.Body className="p-4">
+              <Card.Title className="mb-3">Edit Task</Card.Title>
+              <Form onSubmit={handleUpdateTask}>
+                <Form.Group className="mb-3">
+                  <Form.Label className="fw-semibold">Task Title</Form.Label>
+                  <Form.Control
+                    type="text"
+                    placeholder="Enter task title"
+                    value={editTitle}
+                    onChange={(e) => setEditTitle(e.target.value)}
+                    required
+                    size="lg"
+                  />
+                </Form.Group>
+                <Form.Group className="mb-3">
+                  <Form.Label className="fw-semibold">Due Date</Form.Label>
+                  <Form.Control
+                    type="datetime-local"
+                    value={editDueDate}
+                    onChange={(e) => setEditDueDate(e.target.value)}
+                    size="lg"
+                  />
+                </Form.Group>
+                <div className="d-flex gap-2">
+                  <Button variant="primary" type="submit" disabled={loading} size="lg">
+                    {loading ? 'Updating...' : 'Update Task'}
+                  </Button>
+                  <Button variant="outline-secondary" onClick={handleCancelEdit} size="lg">
+                    Cancel
+                  </Button>
+                </div>
+              </Form>
+            </Card.Body>
+          </Card>
+        )}
 
         <ToastContainer position="top-end">
           <Toast show={showToast} onClose={() => setShowToast(false)} delay={3000} autohide>
