@@ -109,20 +109,25 @@ public class Program
             
             try
             {
+                logger.LogInformation("Initializing database...");
                 context.Database.EnsureCreated();
+                logger.LogInformation("Database.EnsureCreated() completed successfully");
                 
                 // Check if UserFeedbacks table exists, if not create it
                 var connection = context.Database.GetDbConnection();
                 connection.Open();
-                using var command = connection.CreateCommand();
-                command.CommandText = "SELECT name FROM sqlite_master WHERE type='table' AND name='UserFeedbacks';";
-                var result = command.ExecuteScalar();
+                logger.LogInformation("Database connection opened");
+                
+                using var checkCommand = connection.CreateCommand();
+                checkCommand.CommandText = "SELECT name FROM sqlite_master WHERE type='table' AND name='UserFeedbacks';";
+                var result = checkCommand.ExecuteScalar();
                 
                 if (result == null)
                 {
-                    logger.LogInformation("UserFeedbacks table not found, creating it...");
-                    command.CommandText = @"
-                        CREATE TABLE UserFeedbacks (
+                    logger.LogWarning("UserFeedbacks table not found, creating it...");
+                    using var createCommand = connection.CreateCommand();
+                    createCommand.CommandText = @"
+                        CREATE TABLE IF NOT EXISTS UserFeedbacks (
                             Id TEXT NOT NULL PRIMARY KEY,
                             UserId TEXT NOT NULL,
                             Rating INTEGER NOT NULL,
@@ -130,16 +135,23 @@ public class Program
                             CreatedAt TEXT NOT NULL,
                             FOREIGN KEY (UserId) REFERENCES Users(Id) ON DELETE CASCADE
                         );";
-                    command.ExecuteNonQuery();
+                    createCommand.ExecuteNonQuery();
                     logger.LogInformation("UserFeedbacks table created successfully");
+                }
+                else
+                {
+                    logger.LogInformation("UserFeedbacks table already exists");
                 }
                 
                 connection.Close();
-                logger.LogInformation("Database schema verified");
+                logger.LogInformation("Database initialization completed successfully");
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error ensuring database");
+                logger.LogError(ex, "CRITICAL: Error initializing database - {Message}", ex.Message);
+                logger.LogError("Stack trace: {StackTrace}", ex.StackTrace);
+                // Don't throw - allow app to start even if migration fails
+                // The table might already exist and the check failed for some reason
             }
         }
 
