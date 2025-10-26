@@ -22,11 +22,22 @@ public class Program
         {
             options.AddPolicy("AllowClient", policy =>
             {
-                policy.WithOrigins(
-                    "http://localhost:5173",
-                    "https://appsian-hca2.vercel.app",
-                    "https://appsian-hca2-*.vercel.app"
-                )
+                policy.SetIsOriginAllowed(origin =>
+                {
+                    // Allow localhost for development
+                    if (origin.StartsWith("http://localhost:5173"))
+                        return true;
+                    
+                    // Allow production Vercel domain
+                    if (origin == "https://appsian-hca2.vercel.app")
+                        return true;
+                    
+                    // Allow Vercel preview deployments
+                    if (origin.StartsWith("https://appsian-hca2-") && origin.EndsWith(".vercel.app"))
+                        return true;
+                    
+                    return false;
+                })
                 .AllowAnyHeader()
                 .AllowAnyMethod()
                 .AllowCredentials();

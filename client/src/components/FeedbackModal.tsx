@@ -78,7 +78,7 @@ export const FeedbackModal = ({ show, onHide }: FeedbackModalProps) => {
                       variant={star <= rating ? 'warning' : 'outline-secondary'}
                       onClick={() => setRating(star)}
                       size="lg"
-                      className="rounded-circle"
+                      className="rounded-circle d-flex align-items-center justify-content-center p-0"
                       style={{ width: '50px', height: '50px', fontSize: '1.5rem' }}
                     >
                       ⭐
