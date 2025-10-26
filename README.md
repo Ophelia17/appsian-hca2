@@ -2,7 +2,7 @@
 
 A full-stack application for managing projects and tasks with JWT authentication.
 
-## 🚀 Live Deployment
+## Live Deployment
 
 The application is deployed and accessible at: **[https://appsian-hca2.vercel.app/](https://appsian-hca2.vercel.app/)**
 
@@ -192,8 +192,107 @@ DELETE /api/tasks/{taskId}
 Authorization: Bearer {accessToken}
 ```
 
+### Smart Scheduler
+
+#### Get Recommended Task Order
+```bash
+POST /api/scheduler/order
+Authorization: Bearer {accessToken}
+Content-Type: application/json
+
+{
+  "tasks": [
+    {
+      "title": "Design Database Schema",
+      "estimatedHours": 3.0,
+      "dueDate": "2024-12-15T23:59:59",
+      "dependencies": []
+    },
+    {
+      "title": "Implement API",
+      "estimatedHours": 8.0,
+      "dueDate": "2024-12-20T23:59:59",
+      "dependencies": ["Design Database Schema"]
+    },
+    {
+      "title": "Write Tests",
+      "estimatedHours": 4.0,
+      "dueDate": "2024-12-18T23:59:59",
+      "dependencies": ["Implement API"]
+    }
+  ],
+  "strategy": 0
+}
+
+Response:
+{
+  "recommendedOrder": [
+    "Design Database Schema",
+    "Implement API",
+    "Write Tests"
+  ],
+  "strategyUsed": "DepsDueSjf"
+}
+```
+
+**Strategy Options:**
+- `0` - `DepsDueSjf`: Dependencies first, then earliest due date, then shortest job first (default)
+- `1` - `DepsSjfDue`: Dependencies first, then shortest job first, then earliest due date
+- `2` - `DepsDueLjf`: Dependencies first, then earliest due date, then longest job first
+
+**Validation Rules:**
+- Task titles must be unique
+- Dependencies must reference existing task titles
+- No self-dependencies allowed
+- No circular dependencies allowed
+- Estimated hours must be positive
+- Due dates are optional
+
+**Error Responses:**
+- `400 Bad Request`: Invalid input (duplicate titles, unknown dependencies, self-dependencies)
+- `422 Unprocessable Entity`: Circular dependencies detected (deadlock scenario)
+
+### Feedback
+
+#### Submit User Feedback
+```bash
+POST /api/feedback
+Authorization: Bearer {accessToken}
+Content-Type: application/json
+
+{
+  "rating": 5,
+  "comment": "Great app!" (optional)
+}
+
+Response:
+{
+  "id": "guid",
+  "rating": 5,
+  "comment": "Great app!",
+  "createdAt": "2024-12-01T10:30:00Z"
+}
+```
+
+#### Get User Feedback
+```bash
+GET /api/feedback
+Authorization: Bearer {accessToken}
+
+Response:
+[
+  {
+    "id": "guid",
+    "rating": 5,
+    "comment": "Great app!",
+    "createdAt": "2024-12-01T10:30:00Z"
+  }
+]
+```
+
 ## Features
 
+### Core Features
 - User authentication with JWT access tokens (60-minute expiry)
 - Refresh token rotation for secure session management
 - Per-user project and task isolation
@@ -201,6 +300,28 @@ Authorization: Bearer {accessToken}
 - Automatic token refresh on API calls
 - Protected routes with authentication guards
 - Responsive UI with React Bootstrap
+
+### Smart Scheduler
+- **Dependency-Aware Task Ordering**: Automatically orders tasks based on their dependencies using topological sort (Kahn's algorithm)
+- **Multiple Scheduling Strategies**: Choose from three different tie-breaking strategies:
+  - Dependencies → Due Date → Shortest Job First (default)
+  - Dependencies → Shortest Job First → Due Date
+  - Dependencies → Due Date → Longest Job First
+- **Cycle Detection**: Identifies circular dependencies and provides clear error messages
+- **Validation**: Comprehensive input validation for task titles, dependencies, and constraints
+- **Interactive UI**: User-friendly interface for adding tasks, setting dependencies, and viewing recommended order
+
+### Task Management
+- **Task Filtering**: View tasks by status (All, Active, Completed)
+- **Task Editing**: Update task titles, due dates, and completion status
+- **Task Creation Timestamps**: Automatic tracking of when tasks and projects are created
+- **Task Completion Tracking**: Mark tasks as complete and filter by completion status
+
+### User Feedback System
+- **Star Rating**: 5-star rating system with visual feedback
+- **Optional Comments**: Add detailed feedback with up to 1000 characters
+- **Feedback History**: View all previously submitted feedback
+- **Toast Notifications**: Real-time feedback on submission success/failure
 
 ## Validation Rules
 
