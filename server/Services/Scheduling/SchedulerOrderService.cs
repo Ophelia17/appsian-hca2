@@ -89,7 +89,7 @@ public class SchedulerOrderService : ISchedulerOrderService
                 {
                     // Find and report a cycle
                     var cycle = FindCycle(graph);
-                    throw new InvalidOperationException($"Circular dependency detected: {string.Join(" -> ", cycle)}");
+                    throw new InvalidOperationException($"Cannot create a valid schedule due to circular dependencies: {string.Join(" -> ", cycle)} -> ... This creates a deadlock where no task can be started first. Please review and adjust the task dependencies to remove the circular reference.");
                 }
             }
         }

@@ -14,6 +14,7 @@ export const Scheduler = () => {
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [toastVariant, setToastVariant] = useState<'success' | 'danger'>('success');
+  const [deadlockError, setDeadlockError] = useState<string | null>(null);
   const { logout } = useAuth();
   const navigate = useNavigate();
 
@@ -67,11 +68,32 @@ export const Scheduler = () => {
       });
 
       setResult(response);
+      setDeadlockError(null); // Clear any previous deadlock error
       setToastMessage('Schedule generated successfully!');
       setToastVariant('success');
       setShowToast(true);
     } catch (error: any) {
-      const errorMessage = error.response?.data?.detail || error.message || 'Failed to generate schedule';
+      console.error('Scheduler error:', error);
+      
+      let errorMessage = 'Failed to generate schedule';
+      
+      if (error.response?.status === 422) {
+        // Circular dependency / deadlock
+        errorMessage = error.response?.data?.detail || 'Circular dependencies detected - no valid schedule possible due to deadlock';
+        setDeadlockError(errorMessage);
+      } else {
+        setDeadlockError(null);
+      }
+      
+      if (error.response?.status === 400) {
+        // Validation error
+        errorMessage = error.response?.data?.detail || 'Invalid task configuration';
+      } else if (error.response?.data?.detail) {
+        errorMessage = error.response.data.detail;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
       setToastMessage(errorMessage);
       setToastVariant('danger');
       setShowToast(true);
@@ -101,6 +123,13 @@ export const Scheduler = () => {
             </Button>
           </div>
         </div>
+
+        {deadlockError && (
+          <Alert variant="danger" className="mb-4">
+            <Alert.Heading>⚠️ Deadlock Detected</Alert.Heading>
+            <p className="mb-0">{deadlockError}</p>
+          </Alert>
+        )}
 
         <Row>
           <Col lg={6}>
