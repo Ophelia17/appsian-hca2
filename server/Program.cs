@@ -101,11 +101,46 @@ public class Program
         // Health check endpoint
         app.MapGet("/healthz", () => "OK");
 
-        // Ensure database is created
+        // Ensure database is created and schema is up to date
         using (var scope = app.Services.CreateScope())
         {
             var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-            context.Database.EnsureCreated();
+            var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+            
+            try
+            {
+                context.Database.EnsureCreated();
+                
+                // Check if UserFeedbacks table exists, if not create it
+                var connection = context.Database.GetDbConnection();
+                connection.Open();
+                using var command = connection.CreateCommand();
+                command.CommandText = "SELECT name FROM sqlite_master WHERE type='table' AND name='UserFeedbacks';";
+                var result = command.ExecuteScalar();
+                
+                if (result == null)
+                {
+                    logger.LogInformation("UserFeedbacks table not found, creating it...");
+                    command.CommandText = @"
+                        CREATE TABLE UserFeedbacks (
+                            Id TEXT NOT NULL PRIMARY KEY,
+                            UserId TEXT NOT NULL,
+                            Rating INTEGER NOT NULL,
+                            Comment TEXT,
+                            CreatedAt TEXT NOT NULL,
+                            FOREIGN KEY (UserId) REFERENCES Users(Id) ON DELETE CASCADE
+                        );";
+                    command.ExecuteNonQuery();
+                    logger.LogInformation("UserFeedbacks table created successfully");
+                }
+                
+                connection.Close();
+                logger.LogInformation("Database schema verified");
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error ensuring database");
+            }
         }
 
         var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";

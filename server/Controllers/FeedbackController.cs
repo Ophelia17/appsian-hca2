@@ -24,34 +24,46 @@ public class FeedbackController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<FeedbackDto>> CreateFeedback([FromBody] CreateFeedbackDto dto)
     {
-        if (!ModelState.IsValid)
+        try
         {
-            return ValidationProblem(ModelState);
+            if (!ModelState.IsValid)
+            {
+                return ValidationProblem(ModelState);
+            }
+
+            var userId = GetUserId();
+
+            var feedback = new UserFeedback
+            {
+                Id = Guid.NewGuid(),
+                UserId = userId,
+                Rating = dto.Rating,
+                Comment = dto.Comment,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _context.UserFeedbacks.Add(feedback);
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("User {UserId} submitted feedback with rating {Rating}", userId, dto.Rating);
+
+            return Ok(new FeedbackDto
+            {
+                Id = feedback.Id,
+                Rating = feedback.Rating,
+                Comment = feedback.Comment,
+                CreatedAt = feedback.CreatedAt
+            });
         }
-
-        var userId = GetUserId();
-
-        var feedback = new UserFeedback
+        catch (Exception ex)
         {
-            Id = Guid.NewGuid(),
-            UserId = userId,
-            Rating = dto.Rating,
-            Comment = dto.Comment,
-            CreatedAt = DateTime.UtcNow
-        };
-
-        _context.UserFeedbacks.Add(feedback);
-        await _context.SaveChangesAsync();
-
-        _logger.LogInformation("User {UserId} submitted feedback with rating {Rating}", userId, dto.Rating);
-
-        return Ok(new FeedbackDto
-        {
-            Id = feedback.Id,
-            Rating = feedback.Rating,
-            Comment = feedback.Comment,
-            CreatedAt = feedback.CreatedAt
-        });
+            _logger.LogError(ex, "Error creating feedback");
+            return Problem(
+                detail: ex.Message,
+                statusCode: 500,
+                title: "Error creating feedback"
+            );
+        }
     }
 
     [HttpGet]
