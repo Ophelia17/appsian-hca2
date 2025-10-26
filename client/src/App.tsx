@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
@@ -6,9 +7,12 @@ import { Register } from './pages/Register';
 import { Dashboard } from './pages/Dashboard';
 import { ProjectDetails } from './pages/ProjectDetails';
 import { Scheduler } from './pages/Scheduler';
+import { FeedbackButton } from './components/FeedbackButton';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 function App() {
+  const [showFeedback, setShowFeedback] = useState(false);
+
   return (
     <AuthProvider>
       <Router>
@@ -42,6 +46,7 @@ function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Router>
+      <FeedbackButton onShow={() => setShowFeedback(true)} />
     </AuthProvider>
   );
 }
