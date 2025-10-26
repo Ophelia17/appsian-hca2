@@ -147,7 +147,12 @@ export const Dashboard = () => {
                     <Card.Text className="text-muted flex-grow-1">
                       {project.description || 'No description provided'}
                     </Card.Text>
-                    <div className="d-flex gap-2 mt-3">
+                    <div className="mt-2 mb-2">
+                      <small className="text-muted">
+                        Created: {new Date(project.createdAt).toLocaleDateString()}
+                      </small>
+                    </div>
+                    <div className="d-flex gap-2 mt-auto">
                       <Button
                         variant="primary"
                         onClick={() => navigate(`/projects/${project.id}`)}
